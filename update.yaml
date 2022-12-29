@@ -1,0 +1,63 @@
+- hosts: ubuntu
+  gather_facts: yes
+  become: yes
+
+  tasks:
+    - name: Perform a dist-upgrade.
+      ansible.builtin.apt:
+        upgrade: dist
+        update_cache: yes
+
+    - name: install qemu guest agent
+      apt:
+        name: qemu-guest-agent
+        state: present
+
+    - name: Change the hostname to our standard
+      hostname:
+        name="{{ inventory_hostname }}"
+      when:
+        ansible_fqdn != ansible_ssh_host
+
+    - name: restart machine
+      command: shutdown -r now "Ansible updates triggered"
+      async: 0
+      poll: 0
+      ignore_errors: True
+      when:
+        reboot is defined
+
+    - name: Waiting for server to come back up
+      local_action: wait_for host="{{ inventory_hostname }}" port=22 state=started
+
+    - name: Fix /etc/hosts removing the old hostname
+      tags:
+        - hosts
+      lineinfile:
+        state=present
+        dest=/etc/hosts
+        line="{{ ansible_default_ipv4.address }} {{ inventory_hostname }} {{ ansible_hostname }}"
+        regexp="^{{ ansible_default_ipv4.address }}"
+      when:
+        ansible_fqdn != inventory_hostname
+
+    - name: Validate ansible_fqdn == inventory_hostname
+      tags:
+        - validate
+      assert:
+        that:
+          ansible_fqdn == inventory_hostname
+
+    - name: Check if a reboot is required.
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+        get_md5: no
+      register: reboot_required_file
+
+    - name: Reboot the server (if required).
+      ansible.builtin.reboot:
+      when: reboot_required_file.stat.exists == true
+
+    - name: Remove dependencies that are no longer required.
+      ansible.builtin.apt:
+        autoremove: yes

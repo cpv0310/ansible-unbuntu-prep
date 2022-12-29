@@ -1,0 +1,13 @@
+[proxmox]
+matrix.atom.splittingatom.com ansible_ssh_user=root
+skunkwerks.atom.splittingatom.com ansible_ssh_user=root
+
+[ubuntu-prod]
+core.atom.splittingatom.com ansible_ssh_user=ansible
+overwatch.atom.splittingatom.com ansible_ssh_user=ansible
+
+[ubuntu-skunkwerks]
+rancher.atom.splittingatom.com ansible_ssh_user=ansible
+master.atom.splittingatom.com ansible_ssh_user=ansible
+node1.atom.splittingatom.com ansible_ssh_user=ansible
+node2.atom.splittingatom.com ansible_ssh_user=ansible

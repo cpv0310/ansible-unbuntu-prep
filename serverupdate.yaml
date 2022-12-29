@@ -1,0 +1,25 @@
+- hosts: ubuntu-skunkwerks
+  gather_facts: yes
+  become: true
+  become_user: root
+
+  tasks:
+    - name: Update apt-get repo and cache
+      apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
+
+    - name: Upgrade all apt packages
+      apt: upgrade=dist force_apt_get=yes
+
+    - name: Check if a reboot is needed for Debian and Ubuntu boxes
+      register: reboot_required_file
+      stat: path=/var/run/reboot-required get_md5=no
+    - name: Update apt and install required system packages
+      apt:
+        pkg:
+          - nano
+          - fish
+        state: latest
+        update_cache: true
+    - name: enable fish
+      ansible.builtin.shell: sudo usermod -s /usr/bin/fish $USER
+      become: true   # Ensure that the highest permissions are used on the remote host
