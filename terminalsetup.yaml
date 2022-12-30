@@ -50,9 +50,9 @@
     - name: get rid of mcfly installer 
       shell: rm -f ~/mcfly.sh 
       become: no
-    - name: copy simple .bashrc
-      ansible.builtin.copy:
-        src: ./files/.bashrc 
-        dest: ~/.bashrc
-        force: yes
-      become: no     
+#    - name: copy simple .bashrc
+#     ansible.builtin.copy:
+#        src: ./files/.bashrc 
+#        dest: ~/.bashrc
+#        force: yes
+#      become: no     
