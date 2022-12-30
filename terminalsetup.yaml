@@ -1,7 +1,7 @@
-- hosts: ubuntu-skunkwerks
+- hosts: testserver 
   gather_facts: yes
   become: true
-  become_user: root
+#  become_user: ansible_ssh_user
 
   tasks:
     - name: Update apt and install required system packages
@@ -9,9 +9,50 @@
         pkg:
           - nano
           - fish
+          - neofetch
+          - exa
         state: latest
         update_cache: true
+      become: yes
+    - name: Get McFly 
+      shell:
+        cmd: curl -LSfs https://raw.githubusercontent.com/cantino/mcfly/master/ci/install.sh --output mcfly.sh
+        executable: /bin/sh
+#      become: yes
+    - name: Get starship install script
+      shell:
+        cmd: curl -sS https://starship.rs/install.sh --output starship.sh
+        executable: /bin/sh
     - name: enable fish
-      ansible.builtin.shell: sudo usermod -s /usr/bin/fish $USER
-      become: true   # Ensure that the highest permissions are used on the remote host
-
+      ansible.builtin.shell: sudo usermod -s /usr/bin/fish {{ansible_ssh_user}}
+      become: yes 
+    - name: Install starship
+      shell: sudo sh starship.sh --yes
+      become: yes
+    - name: switch from bash to fish
+      shell:
+        cmd: chsh -s /usr/bin/fish
+        executable: /bin/sh
+    - name: copy configs
+      ansible.builtin.copy:
+        src: ./files/terminalconfigs/
+        dest: ~/.config/
+        force: yes
+      become: no 
+    - name: Install McFly
+      shell: bash -c "sudo sh mcfly.sh -s --git cantino/mcfly --force && echo 'done'"
+      register: out
+      become: yes
+    - debug: var=out.stdout
+    - name: get rid of starship installer 
+      shell: rm -f ~/starship.sh 
+      become: no 
+    - name: get rid of mcfly installer 
+      shell: rm -f ~/mcfly.sh 
+      become: no
+    - name: copy simple .bashrc
+      ansible.builtin.copy:
+        src: ./files/.bashrc 
+        dest: ~/.bashrc
+        force: yes
+      become: no     
