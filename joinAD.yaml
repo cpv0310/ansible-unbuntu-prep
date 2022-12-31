@@ -1,0 +1,36 @@
+- hosts: testserver 
+  gather_facts: yes
+  become: true
+
+  tasks:
+    - name: Configure hostname"
+      ansible.builtin.hostname:
+        name: ansible.atom.splittingatom.com
+      become: true
+    - name: Reboot a slow machine that might have lots of updates to apply
+      ansible.builtin.reboot:
+        reboot_timeout: 3600
+    - name: Update apt and install required system packages
+      apt:
+        pkg:
+          - realmd
+          - libnss-sss
+          - libpam-sss
+          - sssd
+          - sssd-tools
+          - adcli
+          - samba-common-bin
+          - oddjob
+          - oddjob-mkhomedir
+          - packagekit
+          - dialog
+          - apt-utils
+          - krb5-user
+          - libnss-ldap
+          - libpam-ldap
+          - ldap-utils
+        state: latest
+        update_cache: true
+      become: yes
+    - name: Unconditionally reboot the machine with all defaults
+      ansible.builtin.reboot:

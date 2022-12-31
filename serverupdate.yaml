@@ -1,4 +1,4 @@
-- hosts: ubuntu-skunkwerks
+- hosts: testserver
   gather_facts: yes
   become: true
   become_user: root

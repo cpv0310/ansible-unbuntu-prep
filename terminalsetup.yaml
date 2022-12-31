@@ -11,6 +11,7 @@
           - fish
           - neofetch
           - exa
+          - curl
         state: latest
         update_cache: true
       become: yes

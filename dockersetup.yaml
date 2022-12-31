@@ -1,0 +1,42 @@
+- hosts: testserver 
+  gather_facts: yes
+  become: true
+
+  tasks:
+    - name: Update apt and install required system packages
+      apt:
+        pkg:
+          - nano
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: latest
+        update_cache: true
+      become: yes
+    - name: Add Docker GPG apt Key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+    - name: Add Docker Repository
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu focal stable
+        state: present
+    - name: Update apt and install docker
+      apt:
+        pkg:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-compose-plugin
+        state: latest
+        update_cache: true
+      become: yes
+    - name: create docker group
+      ansible.builtin.group:
+        name: docker
+        state: present
+      become: yes 
+    - name: Add user to Docker group
+      ansible.builtin.shell: sudo usermod -aG docker {{ansible_ssh_user}}
+      become: yes
